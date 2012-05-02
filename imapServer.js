@@ -68,35 +68,53 @@ net.createServer(function(socket) {
       console.log(serv_prompt + "* IMAP4rev1 Service ready")
     });
 
-    function parseCommand(cmd) {
+    function parseCommand(line, command_patterns) {
       for( var cmd in command_patterns) {
-        if (command_patterns[ cmd ].test( buffer ) ) {
+        if (command_patterns[ cmd ].test( line ) ) {
+          sleep(20);
           return cmd;
         }
       }
     }
+    function sleep(time){
+       time = time * 1000;
+       var start = (new Date()).getTime();
+       while(true){
+          alarm = (new Date()).getTime();
+          if(alarm - start > time){ break; }
+       }
+    }
+/*    function extractArgs(line) {
+      var argc = [];
+      argc[0] = 0;
+      var args = [];
+      var tmp = 0;
+      for (var i = 0; i < line.length ; i++) {
+        if (line[i]==' ') {
+          tmp++;
+          argc[tmp]=i;
+        }
+      }
+      tmp++;
+      argc[tmp]=line.length;
+      for (var i = 0; i < tmp ; i++) {
+        args[i]=line.substr(argc[i],argc[i+1]);
+        console.log(args[i]);
+      }
+      return args;
+    }*/
+
     // Add a 'data' event handler to this instance of socket
     socket.on('data', function(data) {
-      buffer += data;
-
-      while( buffer.indexOf(eol) != -1 ) {
-
-        if ( cmd.in_data ) {
-
-          cmd.appendData( buffer );
-
-        }
-        buffer = "";
-      }
-  
-      console.log("C: " + data);
-      if (state!="auth"){
-        cmd = {};
-      }
-      // Write the data back to the socket, the client will receive it as data from the server
-      socket.write(data + state);
-      console.log(serv_prompt + data);
-      state = "auth";    
+      var line = data.toString();
+      console.log("C: " + line);
+      var splited = [];
+      splited = line.split(" ");
+      var cmd = parseCommand(splited[0], anystate_command_patterns);
+      
+      // Write the line back to the socket, the client will receive it as data from the server
+      socket.write(line + cmd + state);
+      console.log(serv_prompt + line);  
     });
 
     // This is here incase any errors occur
