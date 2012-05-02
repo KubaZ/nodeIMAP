@@ -77,7 +77,7 @@ net.createServer(function(socket) {
     }
     // Add a 'data' event handler to this instance of socket
     socket.on('data', function(data) {
-      buffer += packet;
+      buffer += data;
 
       while( buffer.indexOf(eol) != -1 ) {
 
@@ -91,7 +91,7 @@ net.createServer(function(socket) {
   
       console.log("C: " + data);
       if (state!="auth"){
-        cmd = {}
+        cmd = {};
       }
       // Write the data back to the socket, the client will receive it as data from the server
       socket.write(data + state);
