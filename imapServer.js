@@ -71,18 +71,36 @@ net.createServer(function(socket) {
     function parseCommand(line, command_patterns) {
       for( var cmd in command_patterns) {
         if (command_patterns[ cmd ].test( line ) ) {
-          sleep(20);
           return cmd;
         }
       }
     }
-    function sleep(time){
-       time = time * 1000;
-       var start = (new Date()).getTime();
-       while(true){
-          alarm = (new Date()).getTime();
-          if(alarm - start > time){ break; }
-       }
+    function exec(cmd,line) {
+      if ( callbacks[cmd] ) {
+        callbacks[cmd].callback(line);
+      }
+      else {
+        socket.write("command not implemented");
+      }
+    }
+
+    var callbacks = {
+      logout: {
+        callback: function () {
+          socket.write( '221 <hostname> closing connection' );
+          socket.destroy();
+        }
+      },
+      tls: {
+        callback: function() {
+          socket.write('250-<hostname> Hello ' + socket.remoteAddress );
+        }
+      },
+      auth: {
+        callback: function() {
+          socket.write('250 <hostname> Hello ' + socket.remoteAddress );
+        }
+      }
     }
 /*    function extractArgs(line) {
       var argc = [];
@@ -111,9 +129,13 @@ net.createServer(function(socket) {
       var splited = [];
       splited = line.split(" ");
       var cmd = parseCommand(splited[0], anystate_command_patterns);
+      if (cmd!="undefined") {
+        exec(cmd, line);
+      } else {
+        socket.write(cmd + " not correct ");
+      }
       
       // Write the line back to the socket, the client will receive it as data from the server
-      socket.write(line + cmd + state);
       console.log(serv_prompt + line);  
     });
 
