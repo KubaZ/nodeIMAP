@@ -75,66 +75,19 @@ net.createServer(function(socket) {
         }
       }
     }
-    function exec(cmd,line) {
-      if ( callbacks[cmd] ) {
-        callbacks[cmd].callback(line);
-      }
-      else {
-        socket.write("command not implemented");
-      }
-    }
-
-    var callbacks = {
-      logout: {
-        callback: function () {
-          socket.write( '221 <hostname> closing connection' );
-          socket.destroy();
-        }
-      },
-      tls: {
-        callback: function() {
-          socket.write('250-<hostname> Hello ' + socket.remoteAddress );
-        }
-      },
-      auth: {
-        callback: function() {
-          socket.write('250 <hostname> Hello ' + socket.remoteAddress );
-        }
-      }
-    }
-/*    function extractArgs(line) {
-      var argc = [];
-      argc[0] = 0;
-      var args = [];
-      var tmp = 0;
-      for (var i = 0; i < line.length ; i++) {
-        if (line[i]==' ') {
-          tmp++;
-          argc[tmp]=i;
-        }
-      }
-      tmp++;
-      argc[tmp]=line.length;
-      for (var i = 0; i < tmp ; i++) {
-        args[i]=line.substr(argc[i],argc[i+1]);
-        console.log(args[i]);
-      }
-      return args;
-    }*/
 
     // Add a 'data' event handler to this instance of socket
     socket.on('data', function(data) {
       var line = data.toString();
       console.log("C: " + line);
+
       var splited = [];
       splited = line.split(" ");
-      var cmd = parseCommand(splited[0], anystate_command_patterns);
-      if (cmd!="undefined") {
-        exec(cmd, line);
-      } else {
-        socket.write(cmd + " not correct ");
-      }
-      
+      setTimeout(function(){
+        var cmd = parseCommand(splited[0], anystate_command_patterns);
+        socket.write("Your command: " + cmd);
+      }, 10000);
+      socket.write("U wrote: " + line);
       // Write the line back to the socket, the client will receive it as data from the server
       console.log(serv_prompt + line);  
     });
