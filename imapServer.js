@@ -20,9 +20,9 @@ net.createServer(function(socket) {
     var buffer = "";
     // patterns for commands
     var nonauth_command_patterns = {
-      login: /^LOGIN\s*/i,
+      login: /^LOGIN/i,
       tls: /^STARTTLS/i,
-      auth: /^AUTHENTICATE\s+/i
+      auth: /^AUTHENTICATE/i
     }
 
     var anystate_command_patterns = {
@@ -30,12 +30,21 @@ net.createServer(function(socket) {
       capability: /^CAPABILITY/i,
       logout: /^LOGOUT/i
     }
-    
+
+    var auth_command_patterns = {};    
+
+    for ( var x in [
+      "select", "examine", "create", "delete"] ) {
+      y = "^" + x.toUpperCase();
+      auth_command_patterns[x] = new RegExp(y);
+      console.log(x, y);
+    }
+
     var auth_command_patterns = {
       select: /^SELECT/i,
       examine: /^EXAMINE/i,
       create: /^CREATE/i,
-      delet: /^DELETE/i,
+      'delete': /^DELETE/i,
       rename: /^RENAME/i,
       subscribe: /^SUBSCRIBE/i,
       unsubscribe: /^UNSUBSCRIBE/i,
@@ -76,6 +85,8 @@ net.createServer(function(socket) {
       }
     }
 
+    // function execCommand
+
     // Add a 'data' event handler to this instance of socket
     socket.on('data', function(data) {
       var line = data.toString();
@@ -86,10 +97,12 @@ net.createServer(function(socket) {
       setTimeout(function(){
         var cmd = parseCommand(splited[0], anystate_command_patterns);
         socket.write("Your command: " + cmd);
-      }, 10000);
+      }, 0);
+
       socket.write("U wrote: " + line);
       // Write the line back to the socket, the client will receive it as data from the server
       console.log(serv_prompt + line);  
+      line = "";
     });
 
     // This is here incase any errors occur
